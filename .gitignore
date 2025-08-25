@@ -1,4 +1,4 @@
 .idea
 .env
-db.sqlite3
-poetry.lock
+src/db.sqlite3
+src/poetry.lock

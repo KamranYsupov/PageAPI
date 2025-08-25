@@ -55,7 +55,7 @@ services:
   web:
     <<: *base_python
     build:
-      context: .
+      context: ./src
       dockerfile: web.dockerfile
     container_name: ${PROJECT_NAME}_web
     volumes:

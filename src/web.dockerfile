@@ -4,11 +4,11 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE 'config.settings'
 
-WORKDIR /app
+WORKDIR /app/src
 
 COPY ./pyproject.toml pyproject.toml
-RUN mkdir -p /app/web/static/ && \
-    mkdir -p /app/web/media/  &&  \
+RUN mkdir -p /app/src/static/ && \
+    mkdir -p /app/src/media/  &&  \
     pip install --upgrade pip && \
     pip install 'poetry>=1.4.2' && \
     poetry config virtualenvs.create false && \
