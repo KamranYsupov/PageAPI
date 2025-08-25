@@ -1,0 +1,25 @@
+[project]
+name = "page-api"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "KamranYsupov",email = "kamrankek48@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "django (>=5.2.5,<6.0.0)",
+    "djangorestframework (>=3.16.1,<4.0.0)",
+    "gunicorn (>=23.0.0,<24.0.0)",
+    "pymysql (>=1.1.2,<2.0.0)",
+    "loguru (==0.6.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)"
+]
+
+[tool.poetry]
+packages = [{include = "page_api", from = "src"}]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

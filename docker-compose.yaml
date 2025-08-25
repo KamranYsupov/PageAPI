@@ -1,0 +1,72 @@
+version: '3.3'
+
+x-function: &base_python
+  volumes:
+    - ./:/app/:rw
+    - poetry-volume:/poetry:delegated
+  environment: &env-vars
+    POETRY_HOME: /poetry
+    PYTHONPATH: /app
+    SECRET_KEY: ${SECRET_KEY}
+    DEBUG: ${DEBUG}
+    DB_HOST: ${DB_HOST}
+    DB_NAME: ${DB_NAME}
+    DB_USER: ${DB_USER}
+    DB_PASS: ${DB_PASSWORD}
+    DB_ROOT_PASS: ${DB_ROOT_PASSWORD}
+  depends_on:
+    - db
+  env_file:
+    - .env
+  networks:
+    - internal
+
+services:
+  db:
+    container_name: ${PROJECT_NAME}_db
+    image: mysql:8.0
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - internal
+    env_file:
+      .env
+
+  nginx:
+    build: ./nginx
+    container_name: ${PROJECT_NAME}_nginx
+    volumes:
+      - static_dir:/app/static/
+      - media_dir:/app/media/
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    networks:
+      - internal
+
+  web:
+    <<: *base_python
+    build:
+      context: .
+      dockerfile: web.dockerfile
+    container_name: ${PROJECT_NAME}_web
+    volumes:
+      - static_dir:/app/static/
+      - media_dir:/app/media/
+
+volumes:
+  static_dir:
+  media_dir:
+  db_data:
+  poetry-volume:
+
+networks:
+  internal:
