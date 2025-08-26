@@ -5,11 +5,13 @@ from .serializers import (
     PageListSerializer,
     PageDetailSerializer
 )
+from api.pagination import ObjectsListAPIPagination
 
 
 class PageList(generics.ListAPIView):
     queryset = Page.objects.all()
     serializer_class = PageListSerializer
+    pagination_class = ObjectsListAPIPagination
 
 
 class PageDetail(generics.RetrieveAPIView):
