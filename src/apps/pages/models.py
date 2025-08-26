@@ -37,6 +37,7 @@ class AbstractContent(models.Model, TimestampMixin):
 
     class Meta:
         abstract = True
+        ordering = ['-created_at']
 
 
 class Video(AbstractContent):
@@ -52,8 +53,14 @@ class Video(AbstractContent):
 
     page = PageForeignKeyField(related_name='videos')
 
+    class Meta:
+        verbose_name = _('Видеозапись')
+        verbose_name_plural = _('Видеозаписи')
+
     def __str__(self):
         return f'Видео: {self.title}'
+
+
 
 
 class Audio(AbstractContent):
@@ -61,6 +68,11 @@ class Audio(AbstractContent):
     text = models.TextField(_('Текст'))
 
     page = PageForeignKeyField(related_name='audios')
+
+
+    class Meta:
+        verbose_name = _('Аудиозапись')
+        verbose_name_plural = _('Аудиозаписи')
 
     def __str__(self):
         return f'Аудио: {self.title}'
@@ -73,6 +85,10 @@ class Page(models.Model, TimestampMixin):
         _('Название'),
         max_length=200
     )
+
+    class Meta:
+        verbose_name = _('Страница')
+        verbose_name_plural = _('Страницы')
 
     def __str__(self):
         return self.title
