@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models import F
 from django.utils.text import gettext_lazy as _
 
-from models.mixins import TimestampModelMixin
+from models.mixins import TimestampModelMixin, UUIDModelMixin
 
 
 class PageForeignKeyField(models.ForeignKey):
@@ -24,8 +24,17 @@ class PageForeignKeyField(models.ForeignKey):
     )
 
 
-class AbstractContent(models.Model):
+class AbstractContent(UUIDModelMixin, TimestampModelMixin):
     """Абстрактная модель контента"""
+
+    class ContentType:
+        VIDEO = 'VIDEO'
+        AUDIO = 'AUDIO'
+
+        TYPES = (
+            (VIDEO, _('Видео')),
+            (AUDIO, _('Аудио')),
+        )
 
     title = models.CharField(
         _('Название'),
@@ -35,13 +44,22 @@ class AbstractContent(models.Model):
         _('Счетчик просмотров'),
         default=0
     )
+    content_type = models.CharField(
+        _('Тип контента'),
+        max_length=5,
+        choices=ContentType.TYPES
+    )
 
     class Meta:
         abstract = True
 
 
-class Video(AbstractContent, TimestampModelMixin):
+class Video(AbstractContent):
     """Модель видео контента"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.content_type = self.ContentType.VIDEO
 
     video_url = models.URLField(_('URL видео'))
     subtitles_url = models.URLField(
@@ -61,8 +79,13 @@ class Video(AbstractContent, TimestampModelMixin):
         return f'Видео: {self.title}'
 
 
-class Audio(AbstractContent, TimestampModelMixin):
+class Audio(AbstractContent):
     """Модель аудио контента"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.content_type = self.ContentType.AUDIO
+
     text = models.TextField(_('Текст'))
 
     page = PageForeignKeyField(related_name='audios')
@@ -76,7 +99,7 @@ class Audio(AbstractContent, TimestampModelMixin):
         return f'Аудио: {self.title}'
 
 
-class Page(TimestampModelMixin):
+class Page(UUIDModelMixin, TimestampModelMixin):
     """Модель страницы"""
 
     title = models.CharField(

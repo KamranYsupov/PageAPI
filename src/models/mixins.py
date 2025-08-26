@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.utils.text import gettext_lazy as _
 
@@ -15,3 +17,17 @@ class TimestampModelMixin(models.Model):
     class Meta:
         abstract = True
         ordering = ['-created_at']
+
+
+class UUIDModelMixin(models.Model):
+    id = models.UUIDField(
+        default=uuid.uuid4,
+        primary_key=True,
+        unique=True,
+        editable=False,
+        db_index=True
+    )
+
+    class Meta:
+        abstract = True
+

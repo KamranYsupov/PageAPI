@@ -6,7 +6,7 @@ from .models import Page, Audio, Video
 class AbstractContentInline(admin.TabularInline):
     """Абстрактный класс inline поля контента"""
     extra = 1
-    exclude = ('counter',)
+    exclude = ('content_type', 'counter',)
 
     class Meta:
         abstract = True
@@ -28,7 +28,7 @@ class PageAdmin(admin.ModelAdmin):
 
 class AbstractContentAdmin(admin.ModelAdmin):
     """Абстрактный класс для админ-панели контента"""
-    exclude = ('counter',)
+    exclude = ('content_type', 'counter',)
 
     class Meta:
         abstract = True
