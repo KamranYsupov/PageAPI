@@ -1,10 +1,11 @@
+from itertools import chain
 from typing import List
 
 from django.db import models
 from django.db.models import F
 from django.utils.text import gettext_lazy as _
 
-from models.mixins import TimestampMixin
+from models.mixins import TimestampModelMixin
 
 
 class PageForeignKeyField(models.ForeignKey):
@@ -23,7 +24,7 @@ class PageForeignKeyField(models.ForeignKey):
     )
 
 
-class AbstractContent(models.Model, TimestampMixin):
+class AbstractContent(models.Model):
     """Абстрактная модель контента"""
 
     title = models.CharField(
@@ -37,10 +38,9 @@ class AbstractContent(models.Model, TimestampMixin):
 
     class Meta:
         abstract = True
-        ordering = ['-created_at']
 
 
-class Video(AbstractContent):
+class Video(AbstractContent, TimestampModelMixin):
     """Модель видео контента"""
 
     video_url = models.URLField(_('URL видео'))
@@ -61,9 +61,7 @@ class Video(AbstractContent):
         return f'Видео: {self.title}'
 
 
-
-
-class Audio(AbstractContent):
+class Audio(AbstractContent, TimestampModelMixin):
     """Модель аудио контента"""
     text = models.TextField(_('Текст'))
 
@@ -78,7 +76,7 @@ class Audio(AbstractContent):
         return f'Аудио: {self.title}'
 
 
-class Page(models.Model, TimestampMixin):
+class Page(TimestampModelMixin):
     """Модель страницы"""
 
     title = models.CharField(
@@ -93,12 +91,23 @@ class Page(models.Model, TimestampMixin):
     def __str__(self):
         return self.title
 
-    def get_content(self) -> List[Video | Audio]:
-        content = []
-        content.extend(self.videos.all())
-        content.extend(self.audios.all())
+    def get_content(
+            self,
+            order_by_reverse_created_at: bool = True
+    ) -> List[Video | Audio]:
+        content = chain(
+            self.videos.all(),
+            self.audios.all()
+        )
 
-        return content
+        if order_by_reverse_created_at:
+            content = sorted(
+                content,
+                key=lambda x: x.created_at,
+                reverse=True
+            )
+
+        return list(content)
 
     def increment_content_counter(self):
         self.videos.all().update(counter=F('counter') + 1)

@@ -1,3 +1,5 @@
+from itertools import chain
+
 from rest_framework import serializers
 from apps.pages.models import Page, Video, Audio
 
@@ -43,4 +45,12 @@ class PageDetailSerializer(serializers.ModelSerializer):
     def get_content(self, obj):
         videos = VideoSerializer(obj.videos.all(), many=True).data
         audios = AudioSerializer(obj.audios.all(), many=True).data
-        return {'videos': videos, 'audios': audios}
+
+        content = chain(
+            videos,
+            audios,
+        )
+
+        sorted_content = sorted(content, key=lambda x: x['created_at'])
+
+        return list(sorted_content)

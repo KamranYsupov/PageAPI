@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.text import gettext_lazy as _
 
 
-class TimestampMixin:
+class TimestampModelMixin(models.Model):
     created_at = models.DateTimeField(
         _('Дата создания'),
         auto_now_add=True
@@ -11,3 +11,7 @@ class TimestampMixin:
         _('Дата последнего обновления'),
         auto_now=True
     )
+
+    class Meta:
+        abstract = True
+        ordering = ['-created_at']
