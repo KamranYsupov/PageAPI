@@ -4,13 +4,13 @@ from .models import Page, Audio, Video
 
 
 @admin.register(Page)
-class PageAdmin:
+class PageAdmin(admin.ModelAdmin):
     pass
 
 @admin.register(Audio)
-class AudioAdmin:
+class AudioAdmin(admin.ModelAdmin):
     pass
 
 @admin.register(Video)
-class VideoAdmin:
+class VideoAdmin(admin.ModelAdmin):
     pass
