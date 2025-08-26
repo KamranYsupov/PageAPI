@@ -20,6 +20,7 @@ class VideoInline(AbstractContentInline):
 
 @admin.register(Page)
 class PageAdmin(admin.ModelAdmin):
+    search_fields = 'title__istartswith',
     inlines = [
         VideoInline,
         AudioInline,
