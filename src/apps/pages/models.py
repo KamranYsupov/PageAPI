@@ -1,21 +1,9 @@
-from typing import Any
+from typing import List
 
 from django.db import models
 from django.utils.text import gettext_lazy as _
 
 from models.mixins import TimestampMixin
-
-
-class Page(models.Model, TimestampMixin):
-    """Модель страницы"""
-
-    title = models.CharField(
-        _('Название'),
-        max_length=200
-    )
-
-    def __str__(self):
-        return self.title
 
 
 class PageForeignKeyField(models.ForeignKey):
@@ -37,27 +25,13 @@ class PageForeignKeyField(models.ForeignKey):
 class AbstractContent(models.Model, TimestampMixin):
     """Абстрактная модель контента"""
 
-    class ContentType:
-        VIDEO = 'VIDEO'
-        AUDIO = 'AUDIO'
-
-        TYPES = (
-            (VIDEO, _('Видео')),
-            (AUDIO, _('Аудио')),
-        )
-
     title = models.CharField(
         _('Название'),
         max_length=200
     )
     counter = models.PositiveIntegerField(
-        _('Счетчик'),
+        _('Счетчик просмотров'),
         default=0
-    )
-    content_type = models.CharField(
-        _('Тип контента'),
-        max_length=5,
-        choices=ContentType.TYPES
     )
 
     class Meta:
@@ -70,10 +44,6 @@ class AbstractContent(models.Model, TimestampMixin):
 
 class Video(AbstractContent):
     """Модель видео контента"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.content_type = self.ContentType.VIDEO
 
     video_url = models.URLField(_('URL видео'))
     subtitles_url = models.URLField(
@@ -91,11 +61,6 @@ class Video(AbstractContent):
 
 class Audio(AbstractContent):
     """Модель аудио контента"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.content_type = self.ContentType.AUDIO
-
     text = models.TextField(_('Текст'))
 
     page = PageForeignKeyField(related_name='audios')
@@ -103,3 +68,21 @@ class Audio(AbstractContent):
     def __str__(self):
         return f'Аудио: {self.title}'
 
+
+class Page(models.Model, TimestampMixin):
+    """Модель страницы"""
+
+    title = models.CharField(
+        _('Название'),
+        max_length=200
+    )
+
+    def __str__(self):
+        return self.title
+
+    def get_content(self) -> List[Video | Audio]:
+        content = []
+        content.extend(self.videos.all())
+        content.extend(self.audios.all())
+
+        return content
