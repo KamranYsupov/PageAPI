@@ -1,6 +1,7 @@
 from typing import List
 
 from django.db import models
+from django.db.models import F
 from django.utils.text import gettext_lazy as _
 
 from models.mixins import TimestampMixin
@@ -36,10 +37,6 @@ class AbstractContent(models.Model, TimestampMixin):
 
     class Meta:
         abstract = True
-
-    def increment_counter(self):
-        self.counter += 1
-        self.save()
 
 
 class Video(AbstractContent):
@@ -86,3 +83,7 @@ class Page(models.Model, TimestampMixin):
         content.extend(self.audios.all())
 
         return content
+
+    def increment_content_counter(self):
+        self.videos.all().update(counter=F('counter') + 1)
+        self.audios.all().update(counter=F('counter') + 1)
