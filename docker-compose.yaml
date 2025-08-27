@@ -1,50 +1,67 @@
-version: '3.3'
+version: '3.8'
 
 x-function: &base_python
+  working_dir: /app/src
   volumes:
-    - ./:/app/:rw
+    - ./src:/app/src:rw
     - poetry-volume:/poetry:delegated
   environment: &env-vars
     POETRY_HOME: /poetry
-    PYTHONPATH: /app
+    PYTHONPATH: /app/src
     SECRET_KEY: ${SECRET_KEY}
     DEBUG: ${DEBUG}
     DB_HOST: ${DB_HOST}
     DB_NAME: ${DB_NAME}
     DB_USER: ${DB_USER}
     DB_PASS: ${DB_PASSWORD}
-    DB_ROOT_PASS: ${DB_ROOT_PASSWORD}
   depends_on:
     - db
+    - redis
   env_file:
     - .env
   networks:
     - internal
 
+x-celery: &base_celery
+  <<: *base_python
+  build:
+    context: ./src
+    dockerfile: web.dockerfile
+  entrypoint: celery
+  links:
+    - redis
+  restart: always
+
+x-worker: &base_worker
+  <<: *base_celery
+  command: >
+    -A config.celery worker -l info -P gevent
+
 services:
   db:
     container_name: ${PROJECT_NAME}_db
-    image: mysql:8.0
+    image: postgres:14.6-alpine
+    volumes:
+      - pg_data:/var/lib/postgresql/data/pgdata:rw
+    env_file:
+      - .env
+    networks:
+      - internal
     ports:
       - "${DB_PORT}:${DB_PORT}"
     environment:
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-    volumes:
-      - db_data:/var/lib/mysql
-    networks:
-      - internal
-    env_file:
-      .env
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: trust
+      PGDATA: /var/lib/postgresql/data/pgdata
 
   nginx:
     build: ./nginx
     container_name: ${PROJECT_NAME}_nginx
     volumes:
-      - static_dir:/app/static/
-      - media_dir:/app/media/
+      - static_dir:/app/src/static/
+      - media_dir:/app/src/media/
     ports:
       - "80:80"
     depends_on:
@@ -59,13 +76,34 @@ services:
       dockerfile: web.dockerfile
     container_name: ${PROJECT_NAME}_web
     volumes:
-      - static_dir:/app/static/
-      - media_dir:/app/media/
+      - static_dir:/app/src/static/
+      - media_dir:/app/src/media/
+    restart: on-failure
+
+  redis:
+    image: redis:7.0.11-alpine
+    hostname: redis
+    container_name: ${PROJECT_NAME}_redis
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    networks:
+      - internal
+    env_file:
+      - .env
+    restart: always
+
+  worker1:
+    <<: *base_worker
+    hostname: worker1
+    container_name: ${PROJECT_NAME}_worker1
 
 volumes:
   static_dir:
   media_dir:
-  db_data:
+  pg_data:
+  redis_data:
   poetry-volume:
 
 networks:
