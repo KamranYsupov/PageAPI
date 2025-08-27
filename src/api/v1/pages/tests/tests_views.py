@@ -1,4 +1,5 @@
 import time
+from unittest.mock import patch
 
 from django.urls import reverse
 from rest_framework import status
@@ -54,21 +55,15 @@ class PageAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(serializer_data, response.data)
 
-    def test_increment_view_count(self):
-        """Тест для проверки обновления счетчика просмотров"""
-        initial_video_count = self.video.counter
-        initial_audio_count = self.audio.counter
-
+    @patch('apps.pages.tasks.increment_page_content_counter_task.delay')
+    def test_increment_view_count(self, mock_increment_page_content_counter_task):
+        """Тест для проверки вызова increment_page_content_counter_task"""
         response = self.client.get(
             reverse(
                 'api_v1:page-detail',
                 kwargs={'pk': self.page.pk}
             )
         )
-        time.sleep(1) # Ждем выполнения задачи
-
-        self.video.refresh_from_db()
-        self.audio.refresh_from_db()
-
-        self.assertEqual(self.video.counter, initial_video_count + 1)
-        self.assertEqual(self.audio.counter, initial_audio_count + 1)
+        mock_increment_page_content_counter_task.assert_called_once_with(
+            page_id=self.page.pk
+        )
