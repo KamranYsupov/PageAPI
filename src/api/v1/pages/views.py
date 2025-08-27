@@ -20,5 +20,5 @@ class PageDetailView(generics.RetrieveAPIView):
 
     def get(self, request, *args, **kwargs):
         instance: Page = self.get_object()
-        increment_page_content_counter_task(page_id=instance.id)
+        increment_page_content_counter_task.delay(page_id=instance.id)
         return super().get(request, *args, **kwargs)
