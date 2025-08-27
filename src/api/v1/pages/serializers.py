@@ -28,7 +28,7 @@ class BasePageSerializerMeta:
 
 class PageListSerializer(serializers.ModelSerializer):
     detail_url = serializers.HyperlinkedIdentityField(
-        view_name='api:page-detail',
+        view_name='api_v1:page-detail',
         lookup_field='pk',
     )
 

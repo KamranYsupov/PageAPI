@@ -8,13 +8,13 @@ from .serializers import (
 from api.pagination import ObjectsListAPIPagination
 from apps.pages.tasks import increment_page_content_counter_task
 
-class PageList(generics.ListAPIView):
+class PageListView(generics.ListAPIView):
     queryset = Page.objects.all()
     serializer_class = PageListSerializer
     pagination_class = ObjectsListAPIPagination
 
 
-class PageDetail(generics.RetrieveAPIView):
+class PageDetailView(generics.RetrieveAPIView):
     queryset = Page.objects.all()
     serializer_class = PageDetailSerializer
 
