@@ -1,8 +1,8 @@
 from itertools import chain
-from typing import List
+from typing import List, Union
 
 from django.db import models
-from django.db.models import F
+from django.db.models import F, QuerySet
 from django.utils.text import gettext_lazy as _
 
 from models.mixins import TimestampModelMixin, UUIDModelMixin
@@ -114,14 +114,32 @@ class Page(UUIDModelMixin, TimestampModelMixin):
     def __str__(self):
         return self.title
 
+
+    def __get_content_objects_lists(
+            self
+    ) -> List[Union[QuerySet[Video], QuerySet[Audio]]]:
+        """
+        Метод для получения списка query-сетов
+        с объектами контента страницы(videos, audios, и т. д.)
+        """
+        content_objects_lists = [
+            self.videos.all(),
+            self.audios.all()
+        ]
+
+        return content_objects_lists
+
     def get_content(
             self,
             order_by_reverse_created_at: bool = True
-    ) -> List[Video | Audio]:
-        content = chain(
-            self.videos.all(),
-            self.audios.all()
-        )
+    ) -> List[Union[Video, Audio]]:
+        """
+        Метод для получения объектов контента статьи
+        в виде единого списка
+        """
+
+        content_objects_lists = self.__get_content_objects_lists()
+        content = chain(*content_objects_lists)
 
         if order_by_reverse_created_at:
             content = sorted(
@@ -132,6 +150,9 @@ class Page(UUIDModelMixin, TimestampModelMixin):
 
         return list(content)
 
-    def increment_content_counter(self):
-        self.videos.all().update(counter=F('counter') + 1)
-        self.audios.all().update(counter=F('counter') + 1)
+    def increment_content_counter(self) -> None:
+        """Метод для обновления счетчика просмотров объектов контента статьи"""
+        content_objects_lists = self.__get_content_objects_lists()
+
+        for content_list in content_objects_lists:
+            content_list.update(counter=F('counter') + 1)
