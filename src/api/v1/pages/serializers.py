@@ -5,7 +5,7 @@ from apps.pages.models import Page, Video, Audio
 
 
 class ContentSerializerMetaMixin:
-    exclude = ('page',)
+    exclude = ('page', )
 
 
 class VideoSerializer(serializers.ModelSerializer):
@@ -46,11 +46,7 @@ class PageDetailSerializer(serializers.ModelSerializer):
         videos = VideoSerializer(obj.videos.all(), many=True).data
         audios = AudioSerializer(obj.audios.all(), many=True).data
 
-        content = chain(
-            videos,
-            audios,
-        )
-
-        sorted_content = sorted(content, key=lambda x: x['created_at'])
+        content = chain(videos, audios,)
+        sorted_content = sorted(content, key=lambda x: x['page_position'])
 
         return list(sorted_content)

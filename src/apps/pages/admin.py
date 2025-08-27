@@ -1,4 +1,8 @@
-from django.contrib import admin
+from typing import Union, Dict, List
+
+import loguru
+from django import forms
+from django.contrib import admin, messages
 
 from .models import Page, Audio, Video
 
@@ -25,19 +29,3 @@ class PageAdmin(admin.ModelAdmin):
         VideoInline,
         AudioInline,
     ]
-
-
-class AbstractContentAdmin(admin.ModelAdmin):
-    """Абстрактный класс для админ-панели контента"""
-    exclude = ('content_type', 'counter',)
-
-    class Meta:
-        abstract = True
-
-@admin.register(Audio)
-class AudioAdmin(AbstractContentAdmin):
-    pass
-
-@admin.register(Video)
-class VideoAdmin(AbstractContentAdmin):
-    pass

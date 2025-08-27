@@ -49,9 +49,14 @@ class AbstractContent(UUIDModelMixin, TimestampModelMixin):
         max_length=5,
         choices=ContentType.TYPES
     )
+    page_position = models.PositiveIntegerField(
+        _('Позиция на странице'),
+        default=1,
+    )
 
     class Meta:
         abstract = True
+        ordering = ['page_position', '-created_at']
 
 
 class Video(AbstractContent):
@@ -71,7 +76,7 @@ class Video(AbstractContent):
 
     page = PageForeignKeyField(related_name='videos')
 
-    class Meta:
+    class Meta(AbstractContent.Meta):
         verbose_name = _('Видеозапись')
         verbose_name_plural = _('Видеозаписи')
 
@@ -91,7 +96,7 @@ class Audio(AbstractContent):
     page = PageForeignKeyField(related_name='audios')
 
 
-    class Meta:
+    class Meta(AbstractContent.Meta):
         verbose_name = _('Аудиозапись')
         verbose_name_plural = _('Аудиозаписи')
 
@@ -129,24 +134,13 @@ class Page(UUIDModelMixin, TimestampModelMixin):
 
         return content_objects_lists
 
-    def get_content(
-            self,
-            order_by_reverse_created_at: bool = True
-    ) -> List[Union[Video, Audio]]:
+    def get_content(self) -> List[Union[Video, Audio]]:
         """
         Метод для получения объектов контента статьи
         в виде единого списка
         """
-
         content_objects_lists = self.__get_content_objects_lists()
         content = chain(*content_objects_lists)
-
-        if order_by_reverse_created_at:
-            content = sorted(
-                content,
-                key=lambda x: x.created_at,
-                reverse=True
-            )
 
         return list(content)
 
